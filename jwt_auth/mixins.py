@@ -6,7 +6,7 @@ from django.views.decorators.csrf import csrf_exempt
 
 from jwt_auth import settings, exceptions
 from jwt_auth.utils import get_authorization_header
-from jwt_auth.compat import json, User
+from jwt_auth.compat import json, smart_text, User
 
 
 jwt_decode_handler = settings.JWT_DECODE_HANDLER
@@ -47,6 +47,9 @@ class JSONWebTokenAuthMixin(object):
         auth = get_authorization_header(request).split()
         auth_header_prefix = settings.JWT_AUTH_HEADER_PREFIX.lower()
 
+        if not auth or smart_text(auth[0].lower()) != auth_header_prefix:
+            raise exceptions.AuthenticationFailed()
+
         if len(auth) == 1:
             msg = 'Invalid Authorization header. No credentials provided.'
             raise exceptions.AuthenticationFailed(msg)
@@ -57,7 +60,7 @@ class JSONWebTokenAuthMixin(object):
 
         try:
             payload = jwt_decode_handler(auth[1])
-        except jwt.ExpiredSignature:
+        except jwt.ExpiredSignatureError:
             msg = 'Signature has expired.'
             raise exceptions.AuthenticationFailed(msg)
         except jwt.DecodeError:
