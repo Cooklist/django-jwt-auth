@@ -12,10 +12,8 @@ except ImportError:
 else:
     User = get_user_model()
 
-try:
-    from django.utils.encoding import smart_text
-except ImportError:
-    from django.utils.encoding import smart_unicode as smart_text
+
+from django.utils.encoding import smart_str as smart_text
 
 try:
     # In 1.5 the test client uses force_bytes
